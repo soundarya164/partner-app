@@ -35,8 +35,12 @@
 			</dict>
 		</dict>
 	</dict>
+	<!-- Camera is Required for Scanning QR -->
+	<key>NSCameraUsageDescription</key>
+	<string>Scan Charger QR Code</string>
+	<!-- Location is Required to show chargers near users location -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>To Show Chargers near Location</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

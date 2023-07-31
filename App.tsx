@@ -1,117 +1,153 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
+  BackHandler,
+  Button,
+  Platform,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
-  useColorScheme,
+  TextInput,
   View,
 } from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import WebView from 'react-native-webview';
+import {request, PERMISSIONS} from 'react-native-permissions';
 
 function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [openWebview, setopenWebview] = useState<boolean>(false);
+  const webViewRef = useRef<WebView>(null);
+  const [startingURL, onChangeURL] = React.useState<string>(
+    'https://web.staging.ionage.app',
+  );
 
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   };
+
+  const onAndroidBackPress = useCallback(() => {
+    if (webViewRef.current) {
+      webViewRef.current.goBack();
+      return true; // prevent default behavior (exit app)
+    }
+    return false;
+  }, []);
+
+  const requestCameraPermission = useCallback(async () => {
+    try {
+      const STATUS = await request(
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.CAMERA
+          : PERMISSIONS.ANDROID.CAMERA,
+      );
+      console.log(STATUS);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const requestLocationPermission = useCallback(async () => {
+    try {
+      const STATUS = await request(
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      );
+      console.log(STATUS);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
+      return () => {
+        BackHandler.removeEventListener(
+          'hardwareBackPress',
+          onAndroidBackPress,
+        );
+      };
+    }
+  }, [onAndroidBackPress]);
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+      <StatusBar backgroundColor={backgroundStyle.backgroundColor} />
+
+      {openWebview ? (
+        <>
+          <Button title="Close" onPress={() => setopenWebview(false)} />
+          <View style={styles.webViewContainer}>
+            <WebView
+              ref={webViewRef}
+              allowsInlineMediaPlayback={true}
+              mediaPlaybackRequiresUserAction={false}
+              source={{uri: startingURL}}
+              onError={syntheticEvent => {
+                const {nativeEvent} = syntheticEvent;
+                console.warn('WebView error: ', nativeEvent);
+              }}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={styles.buttonContainer}>
+            <TextInput
+              onChangeText={onChangeURL}
+              value={startingURL}
+              style={styles.textInput}
+              placeholder="Enter Ionage URL"
+            />
+            <View style={styles.buttonSpacing}>
+              <Button
+                title="Open Webview"
+                onPress={() => {
+                  requestCameraPermission();
+                  requestLocationPermission();
+                  setopenWebview(true);
+                }}
+              />
+            </View>
+            <View style={styles.buttonSpacing}>
+              <Button
+                title="Camera Permission"
+                onPress={requestCameraPermission}
+              />
+            </View>
+            <View style={styles.buttonSpacing}>
+              <Button
+                title="Location Permission"
+                onPress={requestLocationPermission}
+              />
+            </View>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  textInput: {
+    color: 'black',
+    borderWidth: 1,
+    marginVertical: 16,
+    borderRadius: 4,
+    paddingHorizontal: 8,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  buttonSpacing: {
+    marginVertical: 16,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  webViewContainer: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: 'red',
   },
-  highlight: {
-    fontWeight: '700',
+  buttonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    marginHorizontal: 16,
   },
 });
 
