@@ -1,4 +1,4 @@
-package com.ionage_rn_sdk;
+package app.ionage.rntest;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

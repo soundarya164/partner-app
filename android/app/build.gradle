@@ -73,9 +73,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.ionage_rn_sdk"
+    namespace "app.ionage.rntest"
     defaultConfig {
-        applicationId "com.ionage_rn_sdk"
+        applicationId "app.ionage.rntest"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

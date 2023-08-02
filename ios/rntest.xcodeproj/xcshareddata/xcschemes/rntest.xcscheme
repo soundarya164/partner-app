@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "ionage_rn_sdk.app"
-               BlueprintName = "ionage_rn_sdk"
-               ReferencedContainer = "container:ionage_rn_sdk.xcodeproj">
+               BuildableName = "rntest.app"
+               BlueprintName = "rntest"
+               ReferencedContainer = "container:rntest.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "ionage_rn_sdkTests.xctest"
-               BlueprintName = "ionage_rn_sdkTests"
-               ReferencedContainer = "container:ionage_rn_sdk.xcodeproj">
+               BuildableName = "rntestTests.xctest"
+               BlueprintName = "rntestTests"
+               ReferencedContainer = "container:rntest.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "ionage_rn_sdk.app"
-            BlueprintName = "ionage_rn_sdk"
-            ReferencedContainer = "container:ionage_rn_sdk.xcodeproj">
+            BuildableName = "rntest.app"
+            BlueprintName = "rntest"
+            ReferencedContainer = "container:rntest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "ionage_rn_sdk.app"
-            BlueprintName = "ionage_rn_sdk"
-            ReferencedContainer = "container:ionage_rn_sdk.xcodeproj">
+            BuildableName = "rntest.app"
+            BlueprintName = "rntest"
+            ReferencedContainer = "container:rntest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

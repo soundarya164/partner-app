@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ionage_rn_sdk</string>
+	<string>rntest</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -35,10 +35,8 @@
 			</dict>
 		</dict>
 	</dict>
-	<!-- Camera is Required for Scanning QR -->
 	<key>NSCameraUsageDescription</key>
 	<string>Scan Charger QR Code</string>
-	<!-- Location is Required to show chargers near users location -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>To Show Chargers near Location</string>
 	<key>UILaunchStoryboardName</key>

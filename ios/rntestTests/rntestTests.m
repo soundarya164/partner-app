@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface ionage_rn_sdkTests : XCTestCase
+@interface rntestTests : XCTestCase
 
 @end
 
-@implementation ionage_rn_sdkTests
+@implementation rntestTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL (^)(UIView *view))test
 {

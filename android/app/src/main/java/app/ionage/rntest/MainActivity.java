@@ -1,4 +1,4 @@
-package com.ionage_rn_sdk;
+package app.ionage.rntest;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "ionage_rn_sdk";
+    return "rntest";
   }
 
   /**
