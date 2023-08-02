@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import WebView from 'react-native-webview';
+import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
 function App(): JSX.Element {
@@ -23,14 +23,6 @@ function App(): JSX.Element {
     flex: 1,
     backgroundColor: '#FFFFFF',
   };
-
-  const onAndroidBackPress = useCallback(() => {
-    if (webViewRef.current) {
-      webViewRef.current.goBack();
-      return true; // prevent default behavior (exit app)
-    }
-    return false;
-  }, []);
 
   const requestCameraPermission = useCallback(async () => {
     try {
@@ -60,6 +52,14 @@ function App(): JSX.Element {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
+      const onAndroidBackPress = () => {
+        if (webViewRef.current) {
+          const run = 'window.go_to_previous_screen()';
+          webViewRef.current.injectJavaScript(run);
+          return true; // prevent default behavior (exit app)
+        }
+        return false;
+      };
       BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
       return () => {
         BackHandler.removeEventListener(
@@ -68,11 +68,37 @@ function App(): JSX.Element {
         );
       };
     }
-  }, [onAndroidBackPress]);
+  }, []);
+
+  const onMessageHandler = useCallback(
+    (event: WebViewMessageEvent) => {
+      console.log(event.nativeEvent.data);
+      switch (event.nativeEvent.data) {
+        case 'ionage_close_app':
+          setopenWebview(false);
+          break;
+        case 'ionage_location_permission':
+          //Request Location Permission if not handled by Ionage PWA
+          // requestLocationPermission();
+          break;
+        case 'ionage_camera_permission':
+          //Request Camera Permission if not handled by Ionage PWA
+          // requestCameraPermission();
+          break;
+      }
+    },
+    [
+      // requestCameraPermission,
+      // requestLocationPermission
+    ],
+  );
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar backgroundColor={backgroundStyle.backgroundColor} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={backgroundStyle.backgroundColor}
+      />
 
       {openWebview ? (
         <>
@@ -83,6 +109,7 @@ function App(): JSX.Element {
               allowsInlineMediaPlayback={true}
               mediaPlaybackRequiresUserAction={false}
               source={{uri: startingURL}}
+              onMessage={onMessageHandler}
               onError={syntheticEvent => {
                 const {nativeEvent} = syntheticEvent;
                 console.warn('WebView error: ', nativeEvent);
@@ -103,8 +130,6 @@ function App(): JSX.Element {
               <Button
                 title="Open Webview"
                 onPress={() => {
-                  requestCameraPermission();
-                  requestLocationPermission();
                   setopenWebview(true);
                 }}
               />
