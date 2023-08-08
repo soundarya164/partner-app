@@ -6,18 +6,25 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from 'react-native';
-import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import {request, PERMISSIONS} from 'react-native-permissions';
+import {
+  IonageWebView,
+  handleAndroidBackPress,
+  type IonageWebViewRef,
+  type IonageMessageType,
+} from 'ionage-rnsdk';
 
 function App(): JSX.Element {
   const [openWebview, setopenWebview] = useState<boolean>(false);
-  const webViewRef = useRef<WebView>(null);
-  const [startingURL, onChangeURL] = React.useState<string>(
-    'https://web.staging.ionage.app',
-  );
+  const webViewRef = useRef<IonageWebViewRef>(null);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [token, setToken] = useState<string>('');
+  const [lat, setLat] = useState<string>('');
+  const [lng, setLng] = useState<string>('');
 
   const backgroundStyle = {
     flex: 1,
@@ -50,13 +57,13 @@ function App(): JSX.Element {
     }
   }, []);
 
+  // Handle Hardware Back Button for Ionage
   useEffect(() => {
     if (Platform.OS === 'android') {
       const onAndroidBackPress = () => {
         if (webViewRef.current) {
-          const run = 'window.go_to_previous_screen()';
-          webViewRef.current.injectJavaScript(run);
-          return true; // prevent default behavior (exit app)
+          handleAndroidBackPress(webViewRef.current);
+          return true;
         }
         return false;
       };
@@ -68,29 +75,28 @@ function App(): JSX.Element {
         );
       };
     }
-  }, []);
+    return () => {};
+  }, [webViewRef]);
 
-  const onMessageHandler = useCallback(
-    (event: WebViewMessageEvent) => {
-      console.log(event.nativeEvent.data);
-      switch (event.nativeEvent.data) {
+  // Handle Messages from Ionage Web
+  const onIonageMessageHandler = useCallback(
+    async (message: IonageMessageType) => {
+      switch (message) {
         case 'ionage_close_app':
+          //hide or close Webview
           setopenWebview(false);
           break;
-        case 'ionage_location_permission':
-          //Request Location Permission if not handled by Ionage PWA
-          // requestLocationPermission();
-          break;
         case 'ionage_camera_permission':
-          //Request Camera Permission if not handled by Ionage PWA
-          // requestCameraPermission();
+          //Ask for Camera Permission for QR Scanner to work
+          requestCameraPermission();
+          break;
+        case 'ionage_location_permission':
+          //Ask for Fine Location Permission for Current Location in Maps
+          requestLocationPermission();
           break;
       }
     },
-    [
-      // requestCameraPermission,
-      // requestLocationPermission
-    ],
+    [requestCameraPermission, requestLocationPermission],
   );
 
   return (
@@ -104,28 +110,52 @@ function App(): JSX.Element {
         <>
           <Button title="Close" onPress={() => setopenWebview(false)} />
           <View style={styles.webViewContainer}>
-            <WebView
+            <IonageWebView
               ref={webViewRef}
-              allowsInlineMediaPlayback={true}
-              mediaPlaybackRequiresUserAction={false}
-              source={{uri: startingURL}}
-              onMessage={onMessageHandler}
-              onError={syntheticEvent => {
-                const {nativeEvent} = syntheticEvent;
-                console.warn('WebView error: ', nativeEvent);
+              options={{
+                apikey: apiKey,
+                ...(token ? {token} : {}),
+                ...(lat ? {lat} : {}),
+                ...(lng ? {lng} : {}),
               }}
+              onIonageMessageHandler={onIonageMessageHandler}
             />
           </View>
         </>
       ) : (
         <>
           <View style={styles.buttonContainer}>
+            <Text>apiKey</Text>
             <TextInput
-              onChangeText={onChangeURL}
-              value={startingURL}
+              onChangeText={setApiKey}
+              value={apiKey}
               style={styles.textInput}
-              placeholder="Enter Ionage URL"
+              placeholder="Enter API key"
             />
+            <Text>token</Text>
+            <TextInput
+              onChangeText={setToken}
+              value={token}
+              style={styles.textInput}
+              placeholder="Enter Token"
+            />
+            <Text>lat/lng</Text>
+            <View style={styles.flexRow}>
+              <TextInput
+                onChangeText={setLat}
+                value={lat}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={[styles.textInput, styles.flex1, {marginRight: 8}]}
+                placeholder="Enter Lat"
+              />
+              <TextInput
+                onChangeText={setLng}
+                value={lng}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={[styles.textInput, styles.flex1, {marginLeft: 8}]}
+                placeholder="Enter Lng"
+              />
+            </View>
             <View style={styles.buttonSpacing}>
               <Button
                 title="Open Webview"
@@ -157,9 +187,15 @@ const styles = StyleSheet.create({
   textInput: {
     color: 'black',
     borderWidth: 1,
-    marginVertical: 16,
+    marginVertical: 8,
     borderRadius: 4,
     paddingHorizontal: 8,
+  },
+  flex1: {
+    flex: 1,
+  },
+  flexRow: {
+    flexDirection: 'row',
   },
   buttonSpacing: {
     marginVertical: 16,
