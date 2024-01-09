@@ -7,29 +7,49 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-import {request, PERMISSIONS} from 'react-native-permissions';
+import {
+  request,
+  requestMultiple,
+  PERMISSIONS,
+  RESULTS,
+  PermissionStatus,
+  openSettings,
+} from 'react-native-permissions';
 import {
   IonageWebView,
   handleAndroidBackPress,
   type IonageWebViewRef,
   type IonageMessageType,
+  IonageWebViewProps,
 } from 'ionage-rnsdk';
+
+const OPTIONS: IonageWebViewProps['options'] = {
+  apikey: '',
+};
 
 function App(): JSX.Element {
   const [openWebview, setopenWebview] = useState<boolean>(false);
+  const [permissionsStatus, setPermissionsStatus] = useState<{
+    camera: boolean;
+    location: boolean;
+    loading: boolean;
+  }>({camera: false, location: false, loading: true});
   const webViewRef = useRef<IonageWebViewRef>(null);
-  const [apiKey, setApiKey] = useState<string>('');
-  const [token, setToken] = useState<string>('');
-  const [lat, setLat] = useState<string>('');
-  const [lng, setLng] = useState<string>('');
 
   const backgroundStyle = {
     flex: 1,
     backgroundColor: '#FFFFFF',
   };
+
+  const openSettingsHandler = useCallback(async () => {
+    try {
+      await openSettings();
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
   const requestCameraPermission = useCallback(async () => {
     try {
@@ -38,7 +58,9 @@ function App(): JSX.Element {
           ? PERMISSIONS.IOS.CAMERA
           : PERMISSIONS.ANDROID.CAMERA,
       );
-      console.log(STATUS);
+      if (STATUS === RESULTS.GRANTED) {
+        setPermissionsStatus(prevValue => ({...prevValue, camera: true}));
+      }
     } catch (error) {
       console.log(error);
     }
@@ -46,16 +68,38 @@ function App(): JSX.Element {
 
   const requestLocationPermission = useCallback(async () => {
     try {
-      const STATUS = await request(
-        Platform.OS === 'ios'
-          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      );
-      console.log(STATUS);
+      let STATUS: PermissionStatus = RESULTS.DENIED;
+      if (Platform.OS === 'ios') {
+        STATUS = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+      } else if (Platform.OS === 'android') {
+        const STATUSES = await requestMultiple([
+          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+          PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION,
+        ]);
+        STATUS = STATUSES[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION];
+      }
+      if (STATUS === RESULTS.GRANTED) {
+        setPermissionsStatus(prevValue => ({...prevValue, location: true}));
+      }
     } catch (error) {
       console.log(error);
     }
   }, []);
+
+  useEffect(() => {
+    if (permissionsStatus.camera && permissionsStatus.location) {
+      setopenWebview(true);
+    }
+  }, [permissionsStatus]);
+
+  useEffect(() => {
+    const initialcall = async () => {
+      await requestCameraPermission();
+      await requestLocationPermission();
+      setPermissionsStatus(prevValue => ({...prevValue, loading: false}));
+    };
+    initialcall();
+  }, [requestCameraPermission, requestLocationPermission]);
 
   // Handle Hardware Back Button for Ionage
   useEffect(() => {
@@ -84,7 +128,7 @@ function App(): JSX.Element {
       switch (message) {
         case 'ionage_close_app':
           //hide or close Webview
-          setopenWebview(false);
+          // setopenWebview(false);
           break;
         case 'ionage_camera_permission':
           //Ask for Camera Permission for QR Scanner to work
@@ -107,74 +151,28 @@ function App(): JSX.Element {
       />
 
       {openWebview ? (
+        <View style={styles.webViewContainer}>
+          <IonageWebView
+            geolocationEnabled={true}
+            ref={webViewRef}
+            options={OPTIONS}
+            onIonageMessageHandler={onIonageMessageHandler}
+          />
+        </View>
+      ) : permissionsStatus.loading ? (
         <>
-          <Button title="Close" onPress={() => setopenWebview(false)} />
-          <View style={styles.webViewContainer}>
-            <IonageWebView
-              ref={webViewRef}
-              options={{
-                apikey: apiKey,
-                ...(token ? {token} : {}),
-                ...(lat ? {lat} : {}),
-                ...(lng ? {lng} : {}),
-              }}
-              onIonageMessageHandler={onIonageMessageHandler}
-            />
+          <View style={styles.buttonContainer}>
+            <Text style={styles.text}>Loading...</Text>
           </View>
         </>
       ) : (
         <>
           <View style={styles.buttonContainer}>
-            <Text>apiKey</Text>
-            <TextInput
-              onChangeText={setApiKey}
-              value={apiKey}
-              style={styles.textInput}
-              placeholder="Enter API key"
-            />
-            <Text>token</Text>
-            <TextInput
-              onChangeText={setToken}
-              value={token}
-              style={styles.textInput}
-              placeholder="Enter Token"
-            />
-            <Text>lat/lng</Text>
-            <View style={styles.flexRow}>
-              <TextInput
-                onChangeText={setLat}
-                value={lat}
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={[styles.textInput, styles.flex1, {marginRight: 8}]}
-                placeholder="Enter Lat"
-              />
-              <TextInput
-                onChangeText={setLng}
-                value={lng}
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={[styles.textInput, styles.flex1, {marginLeft: 8}]}
-                placeholder="Enter Lng"
-              />
-            </View>
+            <Text style={styles.text}>
+              Please Grant Camera & Location Permission
+            </Text>
             <View style={styles.buttonSpacing}>
-              <Button
-                title="Open Webview"
-                onPress={() => {
-                  setopenWebview(true);
-                }}
-              />
-            </View>
-            <View style={styles.buttonSpacing}>
-              <Button
-                title="Camera Permission"
-                onPress={requestCameraPermission}
-              />
-            </View>
-            <View style={styles.buttonSpacing}>
-              <Button
-                title="Location Permission"
-                onPress={requestLocationPermission}
-              />
+              <Button title="Open Settings" onPress={openSettingsHandler} />
             </View>
           </View>
         </>
@@ -184,12 +182,9 @@ function App(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  textInput: {
+  text: {
     color: 'black',
-    borderWidth: 1,
-    marginVertical: 8,
-    borderRadius: 4,
-    paddingHorizontal: 8,
+    textAlign: 'center',
   },
   flex1: {
     flex: 1,
@@ -202,8 +197,6 @@ const styles = StyleSheet.create({
   },
   webViewContainer: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: 'red',
   },
   buttonContainer: {
     flex: 1,
