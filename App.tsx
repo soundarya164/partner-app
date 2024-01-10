@@ -161,6 +161,9 @@ function App(): JSX.Element {
             ref={webViewRef}
             options={OPTIONS}
             onIonageMessageHandler={onIonageMessageHandler}
+            source={{
+              uri: 'https://one888ev.sandbox.ionage.app/',
+            }}
           />
         </View>
       ) : permissionsStatus.loading ? (
