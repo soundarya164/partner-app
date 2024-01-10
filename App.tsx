@@ -24,6 +24,7 @@ import {
   type IonageMessageType,
   IonageWebViewProps,
 } from 'ionage-rnsdk';
+import BootSplash from 'react-native-bootsplash';
 
 const OPTIONS: IonageWebViewProps['options'] = {
   apikey: '',
@@ -97,7 +98,9 @@ function App(): JSX.Element {
       await requestCameraPermission();
       await requestLocationPermission();
       setPermissionsStatus(prevValue => ({...prevValue, loading: false}));
+      await BootSplash.hide({fade: true});
     };
+
     initialcall();
   }, [requestCameraPermission, requestLocationPermission]);
 
