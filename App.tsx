@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   BackHandler,
-  Button,
+  Pressable,
   Platform,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
   StyleSheet,
   Text,
   View,
@@ -165,6 +166,7 @@ function App(): JSX.Element {
       ) : permissionsStatus.loading ? (
         <>
           <View style={styles.buttonContainer}>
+            <ActivityIndicator size="large" color="#E20613" />
             <Text style={styles.text}>Loading...</Text>
           </View>
         </>
@@ -172,10 +174,16 @@ function App(): JSX.Element {
         <>
           <View style={styles.buttonContainer}>
             <Text style={styles.text}>
-              Please Grant Camera & Location Permission
+              Please Grant Camera & Location Permission to show nearby chargers
+              & scan QR
             </Text>
             <View style={styles.buttonSpacing}>
-              <Button title="Open Settings" onPress={openSettingsHandler} />
+              <Pressable
+                android_ripple={{borderless: false}}
+                style={styles.button}
+                onPress={openSettingsHandler}>
+                <Text style={styles.buttonText}>Open Settings</Text>
+              </Pressable>
             </View>
           </View>
         </>
@@ -185,9 +193,29 @@ function App(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    marginHorizontal: 30,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  button: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: '#E20613',
+  },
   text: {
     color: 'black',
     textAlign: 'center',
+    marginHorizontal: 30,
+    fontSize: 16,
+    fontWeight: '500',
   },
   flex1: {
     flex: 1,
@@ -197,6 +225,7 @@ const styles = StyleSheet.create({
   },
   buttonSpacing: {
     marginVertical: 16,
+    marginTop: 32,
   },
   webViewContainer: {
     flex: 1,
