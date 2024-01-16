@@ -96,10 +96,10 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const initialcall = async () => {
+      await BootSplash.hide({fade: true});
       await requestCameraPermission();
       await requestLocationPermission();
       setPermissionsStatus(prevValue => ({...prevValue, loading: false}));
-      await BootSplash.hide({fade: true});
     };
 
     initialcall();
