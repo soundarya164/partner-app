@@ -1,4 +1,4 @@
-package com.ionage
+package app.ionage
 
 import android.app.Application
 import com.facebook.react.PackageList

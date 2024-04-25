@@ -162,7 +162,7 @@ function App(): JSX.Element {
             options={OPTIONS}
             onIonageMessageHandler={onIonageMessageHandler}
             source={{
-              uri: 'https://one888ev.sandbox.ionage.app/',
+              uri: 'https://one888ev.ionage.app/',
             }}
           />
         </View>

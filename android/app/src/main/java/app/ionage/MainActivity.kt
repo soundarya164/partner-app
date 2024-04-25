@@ -1,4 +1,4 @@
-package com.ionage
+package app.ionage
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
