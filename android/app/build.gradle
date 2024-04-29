@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -76,11 +77,12 @@ android {
 
     namespace "app.ionage"
     defaultConfig {
-        applicationId "app.ionage.one888ev"
+        applicationId "app.ionage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode project.env.get("VERSION_CODE").toInteger()
+        versionName project.env.get("VERSION_NAME")
+        resValue "string", "build_config_package", "app.ionage"
     }
     signingConfigs {
         debug {
@@ -93,6 +95,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            applicationIdSuffix "." + project.env.get("PARTNER_APP_ID") 
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -100,6 +103,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            applicationIdSuffix "." + project.env.get("PARTNER_APP_ID") 
         }
     }
 }
