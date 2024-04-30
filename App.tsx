@@ -26,6 +26,7 @@ import {
   IonageWebViewProps,
 } from 'ionage-rnsdk';
 import BootSplash from 'react-native-bootsplash';
+import Config from 'react-native-config';
 
 const OPTIONS: IonageWebViewProps['options'] = {
   apikey: '',
@@ -162,14 +163,17 @@ function App(): JSX.Element {
             options={OPTIONS}
             onIonageMessageHandler={onIonageMessageHandler}
             source={{
-              uri: 'https://one888ev.ionage.app/',
+              uri: Config.PARTNER_WEB_URI || 'https://flux.ionage.app/',
             }}
           />
         </View>
       ) : permissionsStatus.loading ? (
         <>
           <View style={styles.buttonContainer}>
-            <ActivityIndicator size="large" color="#E20613" />
+            <ActivityIndicator
+              size="large"
+              color={Config.PARTNER_PRIMARY_COLOR}
+            />
             <Text style={styles.text}>Loading...</Text>
           </View>
         </>
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 4,
     elevation: 3,
-    backgroundColor: '#E20613',
+    backgroundColor: Config.PARTNER_PRIMARY_COLOR,
   },
   text: {
     color: 'black',

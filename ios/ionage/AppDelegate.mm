@@ -29,17 +29,9 @@
 #endif
 }
 
-// ⬇️ Add this before file @end
-- (UIView *)createRootViewWithBridge:(RCTBridge *)bridge
-                          moduleName:(NSString *)moduleName
-                           initProps:(NSDictionary *)initProps {
-  UIView *rootView = [super createRootViewWithBridge:bridge
-                                          moduleName:moduleName
-                                           initProps:initProps];
-
+// ⬇️ Add this before file @end (for react-native 0.74+)
+- (void)customizeRootView:(RCTRootView *)rootView {
   [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // ⬅️ initialize the splash screen
-
-  return rootView;
 }
 
 @end
