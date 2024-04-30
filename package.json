@@ -4,8 +4,13 @@
   "private": true,
   "scripts": {
     "postinstall": "npx pod-install",
-    "android": "react-native run-android",
+    "android": "react-native run-android --mode=Debug --appIdSuffix 'partner'",
     "ios": "react-native run-ios",
+    "android_apk": "cd android && ./gradlew app:assembleRelease && cd ..",
+    "android_bundle": "cd android && ./gradlew app:bundleRelease && cd ..",
+    "android:clean": "cd android && ./gradlew clean && cd ..",
+    "ios:clean": "cd ios && pod cache clean --all && cd ..",
+    "clean:all": "rm -rf node_modules/ && cd ios && pod cache clean --all && cd .. && yarn cache clean && yarn && yarn ios:clean && yarn android:clean",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"
