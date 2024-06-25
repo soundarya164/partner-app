@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Linking,
 } from 'react-native';
 import {
   request,
@@ -31,6 +32,9 @@ import Config from 'react-native-config';
 const OPTIONS: IonageWebViewProps['options'] = {
   apikey: '',
 };
+
+const INJECTEDJAVASCRIPT =
+  "const meta = document.createElement('meta'); meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0'); meta.setAttribute('name', 'viewport'); document.getElementsByTagName('head')[0].appendChild(meta); ";
 
 function App(): JSX.Element {
   const [openWebview, setopenWebview] = useState<boolean>(false);
@@ -160,6 +164,19 @@ function App(): JSX.Element {
           <IonageWebView
             geolocationEnabled={true}
             ref={webViewRef}
+            //Handle Zoom
+            injectedJavaScript={INJECTEDJAVASCRIPT}
+            onShouldStartLoadWithRequest={event => {
+              //Handle External Links From app
+              if (
+                event.url === 'https://www.ionage.in/privacy-policy.html' ||
+                event.url === 'https://www.ionage.in/terms-and-conditions.html'
+              ) {
+                Linking.openURL(event.url);
+                return false;
+              }
+              return true;
+            }}
             options={OPTIONS}
             onIonageMessageHandler={onIonageMessageHandler}
             source={{
