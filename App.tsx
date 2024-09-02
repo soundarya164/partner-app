@@ -28,6 +28,7 @@ import {
 } from 'ionage-rnsdk';
 import BootSplash from 'react-native-bootsplash';
 import Config from 'react-native-config';
+import {WebViewNavigation} from 'react-native-webview';
 
 const OPTIONS: IonageWebViewProps['options'] = {
   apikey: '',
@@ -93,6 +94,17 @@ function App(): JSX.Element {
     }
   }, []);
 
+  const loadRequestHandler = useCallback((event: WebViewNavigation) => {
+    if (event.url === 'https://www.ionage.in/privacy-policy') {
+      webViewRef.current?.stopLoading();
+      return false;
+    } else if (event.url === 'https://www.ionage.in/terms-and-conditions') {
+      webViewRef.current?.stopLoading();
+      return false;
+    }
+    return true;
+  }, []);
+
   useEffect(() => {
     if (permissionsStatus.camera && permissionsStatus.location) {
       setopenWebview(true);
@@ -133,7 +145,12 @@ function App(): JSX.Element {
 
   // Handle Messages from Ionage Web
   const onIonageMessageHandler = useCallback(
-    async (message: IonageMessageType) => {
+    async (
+      message:
+        | IonageMessageType
+        | 'ionage_privacy_policy'
+        | 'ionage_terms_conditions',
+    ) => {
       switch (message) {
         case 'ionage_close_app':
           //hide or close Webview
@@ -146,6 +163,18 @@ function App(): JSX.Element {
         case 'ionage_location_permission':
           //Ask for Fine Location Permission for Current Location in Maps
           requestLocationPermission();
+          break;
+        case 'ionage_privacy_policy':
+          Linking.openURL(
+            Config.PARTNER_PRIVACY_POLICY ||
+              'https://www.ionage.in/privacy-policy',
+          );
+          break;
+        case 'ionage_terms_conditions':
+          Linking.openURL(
+            Config.PARTNER_TERMS_CONDITION ||
+              'https://www.ionage.in/terms-and-conditions',
+          );
           break;
       }
     },
@@ -165,21 +194,11 @@ function App(): JSX.Element {
             geolocationEnabled={true}
             ref={webViewRef}
             //Handle Zoom
+            setSupportMultipleWindows={false}
             injectedJavaScript={INJECTEDJAVASCRIPT}
-            onShouldStartLoadWithRequest={event => {
-              //Handle External Links From app
-              if (event.url === 'https://www.ionage.in/privacy-policy') {
-                Linking.openURL(Config.PARTNER_PRIVACY_POLICY || event.url);
-                return false;
-              } else if (
-                event.url === 'https://www.ionage.in/terms-and-conditions'
-              ) {
-                Linking.openURL(Config.PARTNER_TERMS_CONDITION || event.url);
-                return false;
-              }
-              return true;
-            }}
             options={OPTIONS}
+            onShouldStartLoadWithRequest={loadRequestHandler} //for iOS
+            onNavigationStateChange={loadRequestHandler} //for Android
             onIonageMessageHandler={onIonageMessageHandler}
             source={{
               uri: Config.PARTNER_WEB_URI || 'https://flux.ionage.app/',
