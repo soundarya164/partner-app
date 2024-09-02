@@ -168,11 +168,13 @@ function App(): JSX.Element {
             injectedJavaScript={INJECTEDJAVASCRIPT}
             onShouldStartLoadWithRequest={event => {
               //Handle External Links From app
-              if (
-                event.url === 'https://www.ionage.in/privacy-policy.html' ||
+              if (event.url === 'https://www.ionage.in/privacy-policy.html') {
+                Linking.openURL(Config.PARTNER_PRIVACY_POLICY || event.url);
+                return false;
+              } else if (
                 event.url === 'https://www.ionage.in/terms-and-conditions.html'
               ) {
-                Linking.openURL(event.url);
+                Linking.openURL(Config.PARTNER_TERMS_CONDITION || event.url);
                 return false;
               }
               return true;
