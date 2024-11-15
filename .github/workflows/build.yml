@@ -1,0 +1,70 @@
+name: Bump Version, Build APK, Release
+
+on: workflow_dispatch
+
+jobs:
+  build_and_release:
+    name: Build APK and Create Tag/Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: '0'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install React.js dependencies
+        run: npm install
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Decode and save keystore file
+        run: |
+          echo "${{ secrets.STORE_FILE }}" | base64 --decode > android/app/partner.jks
+
+      - name: Create keystore.properties
+        env:
+          STORE_FILE: "partner.jks"
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          echo "storeFile=$STORE_FILE" >> android/keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> android/keystore.properties
+          echo "storePassword=$STORE_PASSWORD" >> android/keystore.properties
+
+      - name: Build APK with Gradle
+        working-directory: android
+        run: ./gradlew :app:build
+
+      - name: Bump Version and Create Git Tag
+        id: bump_version
+        uses: anothrNick/github-tag-action@1.71.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.IONAGE_WORKFLOW_PAT }}
+          DEFAULT_BUMP: patch
+          WITH_V: true
+          RELEASE_BRANCHES: ci-setup
+          INITIAL_VERSION: 0.0.1
+
+      - name: Create GitHub Release and Upload APK
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump_version.outputs.new_tag }}
+          files: android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.IONAGE_WORKFLOW_PAT }}
