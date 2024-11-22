@@ -3,11 +3,7 @@ name: Bump Version, Build APK, Release
 on:
   push:
     branches:
-      - 'one888ev'
-      - 'partheon'
-      - 'ci-setup'
-  pull_request:
-    branches:
+      - 'main'
       - 'one888ev'
       - 'partheon'
       - 'ci-setup'
@@ -73,7 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.IONAGE_WORKFLOW_PAT }}
           DEFAULT_BUMP: patch
           WITH_V: true
-          RELEASE_BRANCHES: ci-setup
+          RELEASE_BRANCHES: main
           INITIAL_VERSION: 0.0.1
 
       - name: Get Branch Name
