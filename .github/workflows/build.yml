@@ -1,12 +1,6 @@
 name: Bump Version, Build APK, Release
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'one888ev'
-      - 'partheon'
-      - 'ci-setup'
   workflow_dispatch: 
 
 jobs:
@@ -20,6 +14,13 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: '0'
+
+      - name: Check if the branch is allowed to run
+        run: |
+          if [[ "${{ github.ref }}" != "refs/heads/main" && "${{ github.ref }}" != "refs/heads/one888ev" && "${{ github.ref }}" != "refs/heads/partheon" && "${{ github.ref }}" != "refs/heads/ci-setup" ]]; then
+            echo "This workflow can only run on 'main', 'one888ev', 'partheon', or 'ci-setup' branches."
+            exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -41,6 +42,7 @@ jobs:
       - name: Decode and save keystore file
         run: |
           echo "${{ secrets.STORE_FILE }}" | base64 --decode > android/app/partner.jks
+
       - name: Create keystore.properties
         env:
           STORE_FILE: "partner.jks"
@@ -52,6 +54,7 @@ jobs:
           echo "keyAlias=$KEY_ALIAS" >> android/keystore.properties
           echo "keyPassword=$KEY_PASSWORD" >> android/keystore.properties
           echo "storePassword=$STORE_PASSWORD" >> android/keystore.properties
+
       - name: Build APK with Gradle
         working-directory: android
         run: ./gradlew :app:build
@@ -80,7 +83,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "${{ steps.bump_version.outputs.new_tag }}" 
-          name: "${{ steps.bump_version.outputs.new_tag }} - ${{ env.branch }}" 
+          name: "${{ steps.bump_version.outputs.new_tag }}-${{ env.branch }}" 
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.IONAGE_WORKFLOW_PAT }}
