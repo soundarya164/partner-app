@@ -1,7 +1,17 @@
 name: Bump Version, Build APK, Release
 
-on: [workflow_dispatch]
-   
+on:
+  push:
+    branches:
+      - 'one888ev'
+      - 'partheon'
+      - 'ci-setup'
+  pull_request:
+    branches:
+      - 'one888ev'
+      - 'partheon'
+      - 'ci-setup'
+  workflow_dispatch: 
 
 jobs:
   build_and_release:
@@ -50,6 +60,12 @@ jobs:
         working-directory: android
         run: ./gradlew :app:build
 
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+
       - name: Bump Version and Create Git Tag
         id: bump_version
         uses: anothrNick/github-tag-action@1.71.0
@@ -60,10 +76,15 @@ jobs:
           RELEASE_BRANCHES: ci-setup
           INITIAL_VERSION: 0.0.1
 
+      - name: Get Branch Name
+        id: branch_name
+        run: echo "branch=${{ github.ref_name }}" >> $GITHUB_ENV
+
       - name: Create GitHub Release and Upload APK
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.bump_version.outputs.new_tag }}
+          tag_name: "${{ steps.bump_version.outputs.new_tag }}" 
+          name: "${{ steps.bump_version.outputs.new_tag }} - ${{ env.branch }}" 
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.IONAGE_WORKFLOW_PAT }}
