@@ -1,4 +1,4 @@
-name: Bump Version, Build APK, Release
+name: Bump Version, Build APK, Release.
 
 on:
   workflow_dispatch: 
