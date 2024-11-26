@@ -34,9 +34,11 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
+	<string>We need access to your camera for QR code scanning.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your Location.</string>
+	<string>We use your location to find nearby charging stations and provide navigation assistance. For example, we help you locate the closest station based on your current location.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We need your permission to track your activity to provide a better user experience</string>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>

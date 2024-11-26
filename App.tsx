@@ -42,8 +42,14 @@ function App(): JSX.Element {
   const [permissionsStatus, setPermissionsStatus] = useState<{
     camera: boolean;
     location: boolean;
+    appTrackingTransparency: boolean;
     loading: boolean;
-  }>({camera: false, location: false, loading: true});
+  }>({
+    camera: false,
+    location: false,
+    appTrackingTransparency: false,
+    loading: true,
+  });
   const webViewRef = useRef<IonageWebViewRef>(null);
 
   const backgroundStyle = {
@@ -68,6 +74,22 @@ function App(): JSX.Element {
       );
       if (STATUS === RESULTS.GRANTED) {
         setPermissionsStatus(prevValue => ({...prevValue, camera: true}));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const requestAppTrackingTransparency = useCallback(async () => {
+    try {
+      if (Platform.OS === 'ios') {
+        const STATUS = await request(PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY);
+        if (STATUS === RESULTS.GRANTED) {
+          setPermissionsStatus(prevValue => ({
+            ...prevValue,
+            appTrackingTransparency: true,
+          }));
+        }
       }
     } catch (error) {
       console.log(error);
@@ -116,11 +138,16 @@ function App(): JSX.Element {
       await BootSplash.hide({fade: true});
       await requestCameraPermission();
       await requestLocationPermission();
+      await requestAppTrackingTransparency();
       setPermissionsStatus(prevValue => ({...prevValue, loading: false}));
     };
 
     initialcall();
-  }, [requestCameraPermission, requestLocationPermission]);
+  }, [
+    requestAppTrackingTransparency,
+    requestCameraPermission,
+    requestLocationPermission,
+  ]);
 
   // Handle Hardware Back Button for Ionage
   useEffect(() => {
@@ -219,8 +246,9 @@ function App(): JSX.Element {
         <>
           <View style={styles.buttonContainer}>
             <Text style={styles.text}>
-              Please Grant Camera & Location Permission to show nearby chargers
-              & scan QR
+              Please Grant Camera, Location
+              {Platform.OS === 'ios' && ' & App Tracking'} Permission to show
+              nearby chargers & scan QR
             </Text>
             <View style={styles.buttonSpacing}>
               <Pressable
