@@ -1,1 +1,51 @@
+name: iOS TestFlight Deployment
 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.0.0'
+        bundler-cache: true
+
+    - name: Install Provisioning Profile
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo "$DISTRIBUTION_PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Fastlane_Distribution_Profile.mobileprovision
+      env:
+        DISTRIBUTION_PROVISIONING_PROFILE: ${{ secrets.DISTRIBUTION_PROVISIONING_PROFILE }}
+
+    - name: Decrypt certificates
+      run: |
+        echo "$DEVELOPER_APP_CERTIFICATE" | base64 --decode > signingCertificate.p12
+        security import signingCertificate.p12 -k ~/Library/Keychains/login.keychain -P "$DEVELOPER_APP_PASSWORD" -T /usr/bin/codesign
+      env:
+        DEVELOPER_APP_CERTIFICATE: ${{ secrets.DEVELOPER_APP_CERTIFICATE }}
+        DEVELOPER_APP_PASSWORD: ${{ secrets.DEVELOPER_APP_PASSWORD }}
+        
+    - name: Resolve Swift Package Dependencies
+      run: xcodebuild -resolvePackageDependencies -scheme "ionage-ui"
+
+    - name: Clear Derived Data
+      run: rm -rf ~/Library/Developer/Xcode/DerivedData/*
+
+    - name: Build and deploy to TestFlight
+      run: bundle exec fastlane beta --verbose
+      env:
+        APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        DEVELOPER_APP_PASSWORD: ${{ secrets.DEVELOPER_APP_PASSWORD }}
+        FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 60
+        FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 5
